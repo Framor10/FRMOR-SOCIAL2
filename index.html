@@ -62,6 +62,11 @@
             max-width: 520px;
             position: relative;
             background: radial-gradient(ellipse at 30% 40%, rgba(255, 45, 110, 0.12), transparent 70%);
+            overflow-y: auto;
+        }
+
+        #loginScreen::-webkit-scrollbar {
+            width: 3px;
         }
 
         #loginScreen::before {
@@ -100,21 +105,56 @@
             z-index: 2;
         }
 
-        #loginForm input {
+        .form-section {
+            background: rgba(12, 12, 20, 0.6);
+            backdrop-filter: blur(10px);
+            border-radius: 24px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid var(--glass-edge);
+        }
+
+        .form-section h3 {
+            font-size: 0.9rem;
+            margin-bottom: 12px;
+            color: var(--primary);
+            text-align: left;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+
+        .form-row input {
+            flex: 1;
+        }
+
+        #loginForm input, #loginForm select {
             width: 100%;
-            padding: 14px 18px;
-            margin: 10px 0;
+            padding: 12px 16px;
+            margin: 8px 0;
             border-radius: 40px;
             border: 1.5px solid var(--glass-edge);
             background: rgba(12, 12, 20, 0.7);
             backdrop-filter: blur(8px);
             color: white;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             font-family: 'Inter', sans-serif;
             transition: var(--transition);
         }
 
-        #loginForm input:focus {
+        #loginForm select {
+            cursor: pointer;
+        }
+
+        #loginForm select option {
+            background: #0C0C14;
+            color: white;
+        }
+
+        #loginForm input:focus, #loginForm select:focus {
             outline: none;
             border-color: var(--primary);
             background: rgba(255, 45, 110, 0.08);
@@ -144,7 +184,6 @@
         #loginForm button:hover {
             transform: translateY(-2px);
             box-shadow: 0 12px 24px rgba(255, 45, 110, 0.35);
-            letter-spacing: 0.3px;
         }
 
         #googleBtn {
@@ -157,7 +196,22 @@
 
         #googleBtn:hover {
             background: rgba(255, 255, 255, 0.18) !important;
-            transform: translateY(-2px);
+        }
+
+        .toggle-mode {
+            margin-top: 20px;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        .toggle-mode span {
+            color: var(--primary);
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .toggle-mode span:hover {
+            text-decoration: underline;
         }
 
         #mainApp {
@@ -628,6 +682,10 @@
             color: #10B981;
             border: 1px solid rgba(16, 185, 129, 0.3);
         }
+
+        .hidden {
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -635,11 +693,39 @@
     <h1>FRAMOR</h1>
     <p>Connect differently ✨</p>
     <div id="loginForm">
-        <input type="email" id="email" placeholder="📧 Email" autocomplete="email">
-        <input type="password" id="password" placeholder="🔐 Password (min 6 characters)" autocomplete="current-password">
-        <button id="signupBtn">Create Account</button>
-        <button id="loginBtn">Sign In</button>
-        <button id="googleBtn">🚀 Sign in with Google</button>
+        <!-- Sign In Section -->
+        <div id="signinSection">
+            <div class="form-section">
+                <h3><i class="fas fa-sign-in-alt"></i> Sign In</h3>
+                <input type="email" id="signinEmail" placeholder="📧 Email" autocomplete="email">
+                <input type="password" id="signinPassword" placeholder="🔐 Password" autocomplete="current-password">
+                <button id="loginBtn">Sign In</button>
+            </div>
+            <div class="toggle-mode">
+                Don't have an account? <span id="showSignup">Create one here</span>
+            </div>
+        </div>
+
+        <!-- Sign Up Section (Hidden by default) -->
+        <div id="signupSection" class="hidden">
+            <div class="form-section">
+                <h3><i class="fas fa-user-plus"></i> Create Account</h3>
+                <div class="form-row">
+                    <input type="text" id="firstName" placeholder="First Name *" autocomplete="given-name">
+                    <input type="text" id="lastName" placeholder="Last Name *" autocomplete="family-name">
+                </div>
+                <input type="email" id="signupEmail" placeholder="📧 Email *" autocomplete="email">
+                <input type="tel" id="contactNumber" placeholder="📞 Contact Number" autocomplete="tel">
+                <input type="date" id="dateOfBirth" placeholder="Date of Birth">
+                <input type="password" id="signupPassword" placeholder="🔐 Password (min 6 chars) *">
+                <button id="signupBtn">Create Account</button>
+            </div>
+            <div class="toggle-mode">
+                Already have an account? <span id="showSignin">Sign in here</span>
+            </div>
+        </div>
+
+        <button id="googleBtn" style="margin-top: 10px;">🚀 Continue with Google</button>
     </div>
     <div id="loginMessage"></div>
 </div>
@@ -689,7 +775,10 @@
         <div id="profileEdit" style="display:none;">
             <div class="profile-card">
                 <h3>Edit Profile</h3>
-                <input type="text" id="editDisplayName" class="profile-input" placeholder="Display Name">
+                <input type="text" id="editFirstName" class="profile-input" placeholder="First Name">
+                <input type="text" id="editLastName" class="profile-input" placeholder="Last Name">
+                <input type="tel" id="editContactNumber" class="profile-input" placeholder="Contact Number">
+                <input type="date" id="editDateOfBirth" class="profile-input" placeholder="Date of Birth">
                 <textarea id="editBio" class="profile-input" rows="3" placeholder="Bio"></textarea>
                 <input type="text" id="editLocation" class="profile-input" placeholder="Location">
                 <input type="text" id="editWebsite" class="profile-input" placeholder="Website">
@@ -723,6 +812,21 @@
         const loginScreen = document.getElementById('loginScreen');
         const mainApp = document.getElementById('mainApp');
         const loginMessage = document.getElementById('loginMessage');
+        const signinSection = document.getElementById('signinSection');
+        const signupSection = document.getElementById('signupSection');
+
+        // Toggle between sign in and sign up
+        document.getElementById('showSignup')?.addEventListener('click', () => {
+            signinSection.classList.add('hidden');
+            signupSection.classList.remove('hidden');
+            loginMessage.innerHTML = '';
+        });
+
+        document.getElementById('showSignin')?.addEventListener('click', () => {
+            signupSection.classList.add('hidden');
+            signinSection.classList.remove('hidden');
+            loginMessage.innerHTML = '';
+        });
 
         function showMessage(element, text, type) {
             if (!element) return;
@@ -744,15 +848,21 @@
             }); 
         }
 
-        // Validate email format
         function isValidEmail(email) {
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             return emailRegex.test(email);
         }
 
-        // Validate password strength
         function isValidPassword(password) {
             return password && password.length >= 6;
+        }
+
+        // Get full name from profile
+        function getFullName(profile) {
+            if (profile?.first_name && profile?.last_name) {
+                return `${profile.first_name} ${profile.last_name}`;
+            }
+            return profile?.display_name || currentUser?.email?.split('@')[0] || 'User';
         }
 
         // ---------- PROFILE ----------
@@ -760,21 +870,38 @@
             if (!currentUser) return;
             let { data: profile } = await supabase.from('user_profiles').select('*').eq('id', currentUser.id).single();
             if (!profile) {
-                const { data: newProfile } = await supabase.from('user_profiles').insert({ id: currentUser.id, display_name: currentUser.email.split('@')[0] }).select().single();
+                const { data: newProfile } = await supabase.from('user_profiles').insert({ 
+                    id: currentUser.id, 
+                    display_name: currentUser.email.split('@')[0],
+                    first_name: '',
+                    last_name: '',
+                    contact_number: '',
+                    date_of_birth: null
+                }).select().single();
                 profile = newProfile;
             }
             userProfile = profile;
+            
+            const fullName = getFullName(profile);
+            const firstName = profile?.first_name || '';
+            const lastName = profile?.last_name || '';
+            const contactNumber = profile?.contact_number || 'Not set';
+            const dateOfBirth = profile?.date_of_birth || 'Not set';
+            
             const { count: postsCount } = await supabase.from('posts').select('*', { count: 'exact', head: true }).eq('user_id', currentUser.id);
             const { data: friendships } = await supabase.from('friends').select('*').or(`user_id.eq.${currentUser.id},friend_id.eq.${currentUser.id}`).eq('status', 'accepted');
             const friendsCount = friendships?.length || 0;
 
             document.getElementById('profileDisplay').innerHTML = `
                 <div class="profile-info">
-                    <h3>${escapeHtml(profile?.display_name || currentUser.email.split('@')[0])}</h3>
+                    <h3>${escapeHtml(fullName)}</h3>
                     <p><i class="fas fa-envelope"></i> ${escapeHtml(currentUser.email)}</p>
+                    ${firstName ? `<p><i class="fas fa-user"></i> First Name: ${escapeHtml(firstName)}</p>` : ''}
+                    ${lastName ? `<p><i class="fas fa-user-tag"></i> Last Name: ${escapeHtml(lastName)}</p>` : ''}
+                    ${contactNumber !== 'Not set' ? `<p><i class="fas fa-phone"></i> ${escapeHtml(contactNumber)}</p>` : ''}
+                    ${dateOfBirth !== 'Not set' ? `<p><i class="fas fa-calendar"></i> ${escapeHtml(dateOfBirth)}</p>` : ''}
                     <p><i class="fas fa-quote-left"></i> ${escapeHtml(profile?.bio || 'No bio yet')}</p>
                     <p><i class="fas fa-map-marker-alt"></i> ${escapeHtml(profile?.location || 'No location set')}</p>
-                    <p><i class="fas fa-link"></i> ${escapeHtml(profile?.website || 'No website')}</p>
                     <div class="profile-stats">
                         <div class="stat"><div class="stat-value">${postsCount || 0}</div><div class="stat-label">Posts</div></div>
                         <div class="stat"><div class="stat-value">${friendsCount}</div><div class="stat-label">Friends</div></div>
@@ -786,16 +913,40 @@
             if (myPosts && myPosts.length) myPostsDiv.innerHTML = '<h3>📝 My Posts</h3>' + myPosts.map(p => `<div class="post-card"><div class="post-user">👤 ${escapeHtml(p.user_name)}</div><div>${escapeHtml(p.text||'')}</div>${p.image_url?`<img src="${p.image_url}" class="post-image">`:''}${p.video_url?`<video controls src="${p.video_url}"></video>`:''}<div class="post-stats"><span>❤️ ${p.likes||0} likes</span></div></div>`).join('');
             else myPostsDiv.innerHTML = '<h3>📝 My Posts</h3><div class="loading">No posts yet. Create your first post!</div>';
             
-            document.getElementById('editDisplayName').value = profile?.display_name || '';
+            document.getElementById('editFirstName').value = profile?.first_name || '';
+            document.getElementById('editLastName').value = profile?.last_name || '';
+            document.getElementById('editContactNumber').value = profile?.contact_number || '';
+            document.getElementById('editDateOfBirth').value = profile?.date_of_birth || '';
             document.getElementById('editBio').value = profile?.bio || '';
             document.getElementById('editLocation').value = profile?.location || '';
             document.getElementById('editWebsite').value = profile?.website || '';
         }
 
-        document.getElementById('editProfileBtn')?.addEventListener('click', () => { document.getElementById('profileDisplay').style.display='none'; document.getElementById('profileEdit').style.display='block'; });
-        document.getElementById('cancelEditBtn')?.addEventListener('click', () => { document.getElementById('profileDisplay').style.display='block'; document.getElementById('profileEdit').style.display='none'; });
+        document.getElementById('editProfileBtn')?.addEventListener('click', () => { 
+            document.getElementById('profileDisplay').style.display='none'; 
+            document.getElementById('profileEdit').style.display='block'; 
+        });
+        document.getElementById('cancelEditBtn')?.addEventListener('click', () => { 
+            document.getElementById('profileDisplay').style.display='block'; 
+            document.getElementById('profileEdit').style.display='none'; 
+        });
         document.getElementById('saveProfileBtn')?.addEventListener('click', async () => {
-            await supabase.from('user_profiles').update({ display_name: document.getElementById('editDisplayName').value, bio: document.getElementById('editBio').value, location: document.getElementById('editLocation').value, website: document.getElementById('editWebsite').value, updated_at: new Date() }).eq('id', currentUser.id);
+            const firstName = document.getElementById('editFirstName').value;
+            const lastName = document.getElementById('editLastName').value;
+            const displayName = `${firstName} ${lastName}`.trim();
+            
+            await supabase.from('user_profiles').update({ 
+                first_name: firstName,
+                last_name: lastName,
+                display_name: displayName || currentUser.email.split('@')[0],
+                contact_number: document.getElementById('editContactNumber').value,
+                date_of_birth: document.getElementById('editDateOfBirth').value,
+                bio: document.getElementById('editBio').value,
+                location: document.getElementById('editLocation').value,
+                website: document.getElementById('editWebsite').value,
+                updated_at: new Date()
+            }).eq('id', currentUser.id);
+            
             showMessage(loginMessage, '✅ Profile updated successfully!', 'success');
             document.getElementById('profileDisplay').style.display='block'; 
             document.getElementById('profileEdit').style.display='none';
@@ -808,25 +959,61 @@
             const friendIds = friendships?.map(f => f.user_id === currentUser.id ? f.friend_id : f.user_id) || [];
             if(friendIds.length){
                 const { data: friends } = await supabase.from('users').select('id, email').in('id', friendIds);
-                document.getElementById('friendsList').innerHTML = friends?.map(f => `<div class="friend-card"><i class="fas fa-user-circle"></i> ${escapeHtml(f.email.split('@')[0])}</div>`).join('') || '<div class="loading">No friends yet</div>';
+                const { data: friendProfiles } = await supabase.from('user_profiles').select('id, first_name, last_name').in('id', friendIds);
+                const profileMap = new Map(friendProfiles?.map(p => [p.id, p]) || []);
+                
+                document.getElementById('friendsList').innerHTML = friends?.map(f => {
+                    const profile = profileMap.get(f.id);
+                    const name = profile?.first_name && profile?.last_name ? `${profile.first_name} ${profile.last_name}` : f.email.split('@')[0];
+                    return `<div class="friend-card"><i class="fas fa-user-circle"></i> ${escapeHtml(name)}</div>`;
+                }).join('') || '<div class="loading">No friends yet</div>';
             } else document.getElementById('friendsList').innerHTML = '<div class="loading">No friends yet. Search above!</div>';
+            
             const { data: requests } = await supabase.from('friends').select('*').eq('friend_id', currentUser.id).eq('status', 'pending');
             if(requests?.length){
                 const requesterIds = requests.map(r => r.user_id);
                 const { data: requesters } = await supabase.from('users').select('id, email').in('id', requesterIds);
-                document.getElementById('friendRequests').innerHTML = requesters?.map(r => `<div class="friend-card">👤 ${escapeHtml(r.email.split('@')[0])}<div class="friend-actions"><button class="accept-btn" onclick="acceptFriend('${r.id}')">Accept</button><button class="reject-btn" onclick="rejectFriend('${r.id}')">Reject</button></div></div>`).join('');
+                const { data: requesterProfiles } = await supabase.from('user_profiles').select('id, first_name, last_name').in('id', requesterIds);
+                const profileMap = new Map(requesterProfiles?.map(p => [p.id, p]) || []);
+                
+                document.getElementById('friendRequests').innerHTML = requesters?.map(r => {
+                    const profile = profileMap.get(r.id);
+                    const name = profile?.first_name && profile?.last_name ? `${profile.first_name} ${profile.last_name}` : r.email.split('@')[0];
+                    return `<div class="friend-card">👤 ${escapeHtml(name)}<div class="friend-actions"><button class="accept-btn" onclick="acceptFriend('${r.id}')">Accept</button><button class="reject-btn" onclick="rejectFriend('${r.id}')">Reject</button></div></div>`;
+                }).join('');
             } else document.getElementById('friendRequests').innerHTML = '<div class="loading">No pending requests</div>';
         }
-        window.acceptFriend = async (requesterId) => { await supabase.from('friends').update({ status: 'accepted' }).eq('user_id', requesterId).eq('friend_id', currentUser.id); showMessage(loginMessage, '✅ Friend accepted!', 'success'); loadFriends(); loadChatFriends(); loadProfile(); };
-        window.rejectFriend = async (requesterId) => { await supabase.from('friends').delete().eq('user_id', requesterId).eq('friend_id', currentUser.id); showMessage(loginMessage, '❌ Friend request rejected', 'error'); loadFriends(); };
-        window.sendFriendRequest = async (friendId) => { await supabase.from('friends').insert({ user_id: currentUser.id, friend_id: friendId, status: 'pending' }); showMessage(loginMessage, '✅ Friend request sent!', 'success'); document.getElementById('searchUsers').value=''; document.getElementById('searchResults').innerHTML=''; };
+        
+        window.acceptFriend = async (requesterId) => { 
+            await supabase.from('friends').update({ status: 'accepted' }).eq('user_id', requesterId).eq('friend_id', currentUser.id); 
+            showMessage(loginMessage, '✅ Friend accepted!', 'success'); 
+            loadFriends(); loadChatFriends(); loadProfile(); 
+        };
+        window.rejectFriend = async (requesterId) => { 
+            await supabase.from('friends').delete().eq('user_id', requesterId).eq('friend_id', currentUser.id); 
+            showMessage(loginMessage, '❌ Friend request rejected', 'error'); 
+            loadFriends(); 
+        };
+        window.sendFriendRequest = async (friendId) => { 
+            await supabase.from('friends').insert({ user_id: currentUser.id, friend_id: friendId, status: 'pending' }); 
+            showMessage(loginMessage, '✅ Friend request sent!', 'success'); 
+            document.getElementById('searchUsers').value=''; 
+            document.getElementById('searchResults').innerHTML=''; 
+        };
         
         document.getElementById('searchUsers')?.addEventListener('input', async (e) => {
             const term = e.target.value.toLowerCase();
             if(term.length<2) { document.getElementById('searchResults').innerHTML=''; return; }
             const { data: users } = await supabase.from('users').select('id, email').ilike('email', `%${term}%`).neq('id', currentUser.id).limit(5);
-            if(users?.length) document.getElementById('searchResults').innerHTML = users.map(u => `<div class="friend-card">👤 ${escapeHtml(u.email.split('@')[0])}<div class="friend-actions"><button class="add-friend-btn" onclick="sendFriendRequest('${u.id}')">Add Friend</button></div></div>`).join('');
-            else document.getElementById('searchResults').innerHTML = '<div class="loading">No users found</div>';
+            if(users?.length){
+                const { data: userProfiles } = await supabase.from('user_profiles').select('id, first_name, last_name').in('id', users.map(u => u.id));
+                const profileMap = new Map(userProfiles?.map(p => [p.id, p]) || []);
+                document.getElementById('searchResults').innerHTML = users.map(u => {
+                    const profile = profileMap.get(u.id);
+                    const name = profile?.first_name && profile?.last_name ? `${profile.first_name} ${profile.last_name}` : u.email.split('@')[0];
+                    return `<div class="friend-card">👤 ${escapeHtml(name)}<div class="friend-actions"><button class="add-friend-btn" onclick="sendFriendRequest('${u.id}')">Add Friend</button></div></div>`;
+                }).join('');
+            } else document.getElementById('searchResults').innerHTML = '<div class="loading">No users found</div>';
         });
 
         // chat 
@@ -835,8 +1022,16 @@
             const friendIds = friendships?.map(f => f.user_id === currentUser.id ? f.friend_id : f.user_id) || [];
             if(!friendIds.length){ document.getElementById('chatFriendsList').innerHTML='<div class="loading">👥 Add friends first to start chatting!</div>'; return; }
             const { data: friends } = await supabase.from('users').select('id, email').in('id', friendIds);
-            document.getElementById('chatFriendsList').innerHTML = '<h3><i class="fas fa-comments"></i> Select a friend:</h3>' + friends?.map(f => `<div class="friend-card chat-friend-item" onclick="selectChatFriend('${f.id}', '${escapeHtml(f.email.split('@')[0])}')"><i class="fas fa-user"></i> ${escapeHtml(f.email.split('@')[0])}</div>`).join('');
+            const { data: friendProfiles } = await supabase.from('user_profiles').select('id, first_name, last_name').in('id', friendIds);
+            const profileMap = new Map(friendProfiles?.map(p => [p.id, p]) || []);
+            
+            document.getElementById('chatFriendsList').innerHTML = '<h3><i class="fas fa-comments"></i> Select a friend:</h3>' + friends?.map(f => {
+                const profile = profileMap.get(f.id);
+                const name = profile?.first_name && profile?.last_name ? `${profile.first_name} ${profile.last_name}` : f.email.split('@')[0];
+                return `<div class="friend-card chat-friend-item" onclick="selectChatFriend('${f.id}', '${escapeHtml(name)}')"><i class="fas fa-user"></i> ${escapeHtml(name)}</div>`;
+            }).join('');
         }
+        
         window.selectChatFriend = async (friendId, friendName) => {
             selectedChatFriend = { id: friendId, name: friendName };
             document.querySelectorAll('.chat-friend-item').forEach(el => el.classList.remove('selected-chat'));
@@ -854,6 +1049,7 @@
             }
             chatDiv.innerHTML = html; chatDiv.scrollTop = chatDiv.scrollHeight;
         };
+        
         async function sendPrivateMessage() {
             if(!currentUser || !selectedChatFriend) { alert('Select a friend first'); return; }
             const input = document.getElementById('chatInput'); const text = input.value.trim();
@@ -878,12 +1074,7 @@
                 .not('video_url', 'is', null)
                 .order('created_at', { ascending: false });
             
-            if (error) {
-                reelsDiv.innerHTML = `<div class="no-reels"><i class="fas fa-exclamation-circle"></i> Error loading reels</div>`;
-                return;
-            }
-            
-            if (!videoPosts || videoPosts.length === 0) {
+            if (error || !videoPosts?.length) {
                 reelsDiv.innerHTML = `
                     <div class="no-reels">
                         <i class="fas fa-film" style="font-size: 48px; margin-bottom: 16px; opacity: 0.5;"></i>
@@ -893,11 +1084,7 @@
                 return;
             }
             
-            const { data: userLikes } = currentUser ? await supabase
-                .from('post_likes')
-                .select('post_id')
-                .eq('user_id', currentUser.id) : { data: [] };
-            
+            const { data: userLikes } = currentUser ? await supabase.from('post_likes').select('post_id').eq('user_id', currentUser.id) : { data: [] };
             const likedPostIds = new Set(userLikes?.map(l => l.post_id) || []);
             
             let reelsHtml = '';
@@ -905,42 +1092,26 @@
                 const isLiked = likedPostIds.has(post.id);
                 reelsHtml += `
                     <div class="reel-item" data-post-id="${post.id}">
-                        <video 
-                            class="reel-video" 
-                            src="${post.video_url}" 
-                            controls 
-                            preload="metadata"
-                            playsinline>
-                        </video>
+                        <video class="reel-video" src="${post.video_url}" controls preload="metadata" playsinline></video>
                         <div class="reel-info">
-                            <div class="reel-user">
-                                <i class="fas fa-user-circle"></i> 
-                                <strong>${escapeHtml(post.user_name)}</strong>
-                            </div>
-                            ${post.text ? `<div class="reel-caption"><i class="fas fa-caption"></i> ${escapeHtml(post.text)}</div>` : ''}
+                            <div class="reel-user"><i class="fas fa-user-circle"></i> <strong>${escapeHtml(post.user_name)}</strong></div>
+                            ${post.text ? `<div class="reel-caption">${escapeHtml(post.text)}</div>` : ''}
                             <div class="reel-actions">
                                 <button class="reel-like-btn ${isLiked ? 'reel-liked' : ''}" onclick="toggleReelLike('${post.id}', ${isLiked})">
-                                    <i class="${isLiked ? 'fas fa-heart' : 'far fa-heart'}"></i> 
-                                    <span>${post.likes || 0}</span>
+                                    <i class="${isLiked ? 'fas fa-heart' : 'far fa-heart'}"></i> <span>${post.likes || 0}</span>
                                 </button>
                                 <button class="reel-comment-btn" onclick="openCommentsOnFeed('${post.id}')">
-                                    <i class="far fa-comment"></i> 
-                                    <span>Comments</span>
+                                    <i class="far fa-comment"></i> <span>Comments</span>
                                 </button>
                             </div>
                         </div>
-                    </div>
-                `;
+                    </div>`;
             }
             reelsDiv.innerHTML = reelsHtml;
         }
         
         window.toggleReelLike = async (postId, isLiked) => {
-            if (!currentUser) {
-                alert('Please log in to like reels');
-                return;
-            }
-            
+            if (!currentUser) return;
             if (isLiked) {
                 await supabase.from('post_likes').delete().eq('post_id', postId).eq('user_id', currentUser.id);
                 const { data: p } = await supabase.from('posts').select('likes').eq('id', postId).single();
@@ -960,7 +1131,6 @@
             const feedBtn = document.querySelector('[data-panel="feed"]');
             if (feedBtn) feedBtn.classList.add('active');
             document.getElementById('feedPanel').classList.add('active');
-            
             setTimeout(() => {
                 const commentInput = document.getElementById(`comment-${postId}`);
                 if (commentInput) {
@@ -985,23 +1155,27 @@
             }
             feedDiv.innerHTML = html;
         }
+        
         window.toggleLike = async (postId, isLiked) => { if(!currentUser) return;
             if(isLiked) { await supabase.from('post_likes').delete().eq('post_id', postId).eq('user_id', currentUser.id); const {data:p}=await supabase.from('posts').select('likes').eq('id',postId).single(); await supabase.from('posts').update({likes: (p?.likes||0)-1}).eq('id',postId); }
             else { await supabase.from('post_likes').insert({ post_id: postId, user_id: currentUser.id }); const {data:p}=await supabase.from('posts').select('likes').eq('id',postId).single(); await supabase.from('posts').update({likes: (p?.likes||0)+1}).eq('id',postId); }
             loadFeed(); loadReels();
         };
+        
         window.addComment = async (postId) => { if(!currentUser) return;
             const input = document.getElementById(`comment-${postId}`); const text = input.value.trim(); if(!text) return;
             await supabase.from('comments').insert({ post_id: postId, user_id: currentUser.id, user_name: currentUser.email.split('@')[0], text });
             input.value = ''; loadFeed(); loadReels();
         };
+        
         document.getElementById('createPostBtn')?.addEventListener('click', async () => { if(!currentUser) return;
             const text = document.getElementById('postText').value.trim();
             const imageFile = document.getElementById('postImage').files[0], videoFile = document.getElementById('postVideo').files[0];
             let imageUrl=null, videoUrl=null;
             if(imageFile) { const fn = `${Date.now()}_${imageFile.name}`; await supabase.storage.from('posts').upload(fn, imageFile); const {data:{publicUrl}} = supabase.storage.from('posts').getPublicUrl(fn); imageUrl=publicUrl; }
             if(videoFile) { const fn = `${Date.now()}_${videoFile.name}`; await supabase.storage.from('posts').upload(fn, videoFile); const {data:{publicUrl}} = supabase.storage.from('posts').getPublicUrl(fn); videoUrl=publicUrl; }
-            await supabase.from('posts').insert({ user_id: currentUser.id, user_name: currentUser.email.split('@')[0], text, image_url: imageUrl, video_url: videoUrl, likes:0 });
+            const displayName = userProfile?.first_name && userProfile?.last_name ? `${userProfile.first_name} ${userProfile.last_name}` : currentUser.email.split('@')[0];
+            await supabase.from('posts').insert({ user_id: currentUser.id, user_name: displayName, text, image_url: imageUrl, video_url: videoUrl, likes:0 });
             document.getElementById('postText').value = ''; document.getElementById('postImage').value=''; document.getElementById('postVideo').value='';
             showMessage(loginMessage, '✅ Post created successfully!', 'success');
             loadFeed(); loadReels();
@@ -1021,28 +1195,30 @@
         
         document.getElementById('logoutBtn')?.addEventListener('click', async () => { await supabase.auth.signOut(); currentUser=null; loginScreen.style.display='flex'; mainApp.style.display='none'; });
         
-        // ============ FIXED AUTHENTICATION ============
-        // Sign Up
+        // SIGN UP with all fields
         document.getElementById('signupBtn')?.addEventListener('click', async () => {
-            const email = document.getElementById('email').value.trim();
-            const password = document.getElementById('password').value;
+            const firstName = document.getElementById('firstName').value.trim();
+            const lastName = document.getElementById('lastName').value.trim();
+            const email = document.getElementById('signupEmail').value.trim();
+            const contactNumber = document.getElementById('contactNumber').value.trim();
+            const dateOfBirth = document.getElementById('dateOfBirth').value;
+            const password = document.getElementById('signupPassword').value;
             
-            // Clear previous message
             loginMessage.innerHTML = '';
             
             // Validation
-            if (!email || !password) {
-                showMessage(loginMessage, '⚠️ Please enter both email and password', 'error');
+            if (!firstName || !lastName) {
+                showMessage(loginMessage, '⚠️ First Name and Last Name are required!', 'error');
                 return;
             }
             
-            if (!isValidEmail(email)) {
-                showMessage(loginMessage, '⚠️ Please enter a valid email address (e.g., name@example.com)', 'error');
+            if (!email || !isValidEmail(email)) {
+                showMessage(loginMessage, '⚠️ Please enter a valid email address', 'error');
                 return;
             }
             
-            if (!isValidPassword(password)) {
-                showMessage(loginMessage, '⚠️ Password must be at least 6 characters long', 'error');
+            if (!password || !isValidPassword(password)) {
+                showMessage(loginMessage, '⚠️ Password must be at least 6 characters', 'error');
                 return;
             }
             
@@ -1051,36 +1227,52 @@
                     email: email, 
                     password: password,
                     options: {
-                        emailRedirectTo: window.location.origin
+                        data: {
+                            first_name: firstName,
+                            last_name: lastName,
+                            full_name: `${firstName} ${lastName}`
+                        }
                     }
                 });
                 
                 if (error) {
-                    console.error('Signup error:', error);
-                    if (error.message.includes('password')) {
-                        showMessage(loginMessage, '❌ Password must be at least 6 characters', 'error');
-                    } else if (error.message.includes('already registered')) {
+                    if (error.message.includes('already registered')) {
                         showMessage(loginMessage, '❌ This email is already registered. Please sign in instead.', 'error');
                     } else {
                         showMessage(loginMessage, `❌ ${error.message}`, 'error');
                     }
                 } else if (data.user) {
+                    // Create profile with all details
+                    await supabase.from('user_profiles').insert({ 
+                        id: data.user.id,
+                        first_name: firstName,
+                        last_name: lastName,
+                        display_name: `${firstName} ${lastName}`,
+                        contact_number: contactNumber || null,
+                        date_of_birth: dateOfBirth || null,
+                        email: email
+                    });
+                    
                     showMessage(loginMessage, '✅ Account created successfully! You can now sign in.', 'success');
-                    // Clear password field for security
-                    document.getElementById('password').value = '';
-                } else {
-                    showMessage(loginMessage, '✅ Please check your email to confirm your account!', 'success');
+                    // Switch to sign in mode and clear fields
+                    signupSection.classList.add('hidden');
+                    signinSection.classList.remove('hidden');
+                    document.getElementById('signupPassword').value = '';
+                    document.getElementById('signupEmail').value = '';
+                    document.getElementById('firstName').value = '';
+                    document.getElementById('lastName').value = '';
+                    document.getElementById('contactNumber').value = '';
+                    document.getElementById('dateOfBirth').value = '';
                 }
             } catch (err) {
-                console.error('Unexpected error:', err);
                 showMessage(loginMessage, '❌ An unexpected error occurred. Please try again.', 'error');
             }
         });
         
         // Sign In
         document.getElementById('loginBtn')?.addEventListener('click', async () => {
-            const email = document.getElementById('email').value.trim();
-            const password = document.getElementById('password').value;
+            const email = document.getElementById('signinEmail').value.trim();
+            const password = document.getElementById('signinPassword').value;
             
             loginMessage.innerHTML = '';
             
@@ -1089,24 +1281,10 @@
                 return;
             }
             
-            if (!isValidEmail(email)) {
-                showMessage(loginMessage, '⚠️ Please enter a valid email address', 'error');
-                return;
-            }
-            
-            if (!isValidPassword(password)) {
-                showMessage(loginMessage, '⚠️ Password must be at least 6 characters', 'error');
-                return;
-            }
-            
             try {
-                const { data, error } = await supabase.auth.signInWithPassword({ 
-                    email: email, 
-                    password: password 
-                });
+                const { data, error } = await supabase.auth.signInWithPassword({ email, password });
                 
                 if (error) {
-                    console.error('Login error:', error);
                     if (error.message.includes('Invalid login credentials')) {
                         showMessage(loginMessage, '❌ Invalid email or password. Please try again.', 'error');
                     } else {
@@ -1121,7 +1299,6 @@
                     await loadReels();
                 }
             } catch (err) {
-                console.error('Unexpected error:', err);
                 showMessage(loginMessage, '❌ An unexpected error occurred. Please try again.', 'error');
             }
         });
@@ -1129,20 +1306,13 @@
         // Google Sign In
         document.getElementById('googleBtn')?.addEventListener('click', async () => {
             try {
-                const { data, error } = await supabase.auth.signInWithOAuth({
+                const { error } = await supabase.auth.signInWithOAuth({
                     provider: 'google',
-                    options: {
-                        redirectTo: window.location.origin
-                    }
+                    options: { redirectTo: window.location.origin }
                 });
-                
-                if (error) {
-                    console.error('Google login error:', error);
-                    showMessage(loginMessage, `❌ ${error.message}`, 'error');
-                }
+                if (error) showMessage(loginMessage, `❌ ${error.message}`, 'error');
             } catch (err) {
-                console.error('Unexpected error:', err);
-                showMessage(loginMessage, '❌ An unexpected error occurred. Please try again.', 'error');
+                showMessage(loginMessage, '❌ An unexpected error occurred.', 'error');
             }
         });
         
@@ -1155,9 +1325,6 @@
                 loadProfile();
                 loadFeed();
                 loadReels();
-            } else {
-                loginScreen.style.display = 'flex';
-                mainApp.style.display = 'none';
             }
         });
         
@@ -1173,6 +1340,8 @@
                 currentUser = null;
                 loginScreen.style.display = 'flex';
                 mainApp.style.display = 'none';
+                signinSection.classList.remove('hidden');
+                signupSection.classList.add('hidden');
             }
         });
     })();
