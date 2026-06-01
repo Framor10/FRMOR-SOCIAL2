@@ -46,12 +46,10 @@
             font-weight: 400;
         }
 
-        /* premium glassmorphism + smooth scroll */
         #loginScreen, #mainApp {
             transition: opacity 0.3s ease;
         }
 
-        /* ========= LOGIN SCREEN — LUXE ========= */
         #loginScreen {
             display: flex;
             flex-direction: column;
@@ -162,7 +160,6 @@
             transform: translateY(-2px);
         }
 
-        /* ========= MAIN APP ========= */
         #mainApp {
             display: none;
             flex-direction: column;
@@ -176,7 +173,6 @@
             box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
         }
 
-        /* header gloss */
         .framor-header {
             display: flex;
             justify-content: space-between;
@@ -200,7 +196,6 @@
             letter-spacing: -1px;
         }
 
-        /* Navbar — modern pill design */
         .nav-bar {
             display: flex;
             background: rgba(12, 12, 20, 0.7);
@@ -271,7 +266,6 @@
             }
         }
 
-        /* Cards — elegant frosted */
         .post-card, .message-bubble, .friend-card, .profile-card {
             background: var(--bg-card);
             backdrop-filter: blur(8px);
@@ -289,7 +283,6 @@
             box-shadow: var(--shadow-sm);
         }
 
-        /* REELS STYLES - Instagram-like vertical video feed */
         .reels-container {
             display: flex;
             flex-direction: column;
@@ -379,7 +372,6 @@
             color: var(--text-muted);
         }
 
-        /* create post area */
         .create-post {
             background: rgba(18, 18, 28, 0.7);
             backdrop-filter: blur(8px);
@@ -474,7 +466,6 @@
             color: white;
         }
 
-        /* chat */
         .chat-input-container {
             display: flex;
             gap: 12px;
@@ -501,7 +492,6 @@
             color: white;
         }
 
-        /* profile stats */
         .profile-stats {
             display: flex;
             justify-content: center;
@@ -545,7 +535,6 @@
             background: linear-gradient(105deg, #EF4444, #B91C1C);
         }
 
-        /* search */
         .search-box {
             background: rgba(12, 12, 20, 0.7);
             border: 1px solid var(--glass-edge);
@@ -556,7 +545,6 @@
             margin-bottom: 20px;
         }
 
-        /* message bubbles */
         .message-bubble {
             border-radius: 24px;
             margin-bottom: 12px;
@@ -574,7 +562,6 @@
             transition: 0.2s;
         }
 
-        /* scroll */
         ::-webkit-scrollbar {
             width: 4px;
         }
@@ -622,6 +609,25 @@
             transform: none;
             cursor: not-allowed;
         }
+
+        .message {
+            padding: 12px;
+            border-radius: 12px;
+            margin-top: 16px;
+            font-size: 0.85rem;
+        }
+
+        .error {
+            background: rgba(239, 68, 68, 0.2);
+            color: #EF4444;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .success {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10B981;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
     </style>
 </head>
 <body>
@@ -629,8 +635,8 @@
     <h1>FRAMOR</h1>
     <p>Connect differently ✨</p>
     <div id="loginForm">
-        <input type="email" id="email" placeholder="📧 Email">
-        <input type="password" id="password" placeholder="🔐 Password">
+        <input type="email" id="email" placeholder="📧 Email" autocomplete="email">
+        <input type="password" id="password" placeholder="🔐 Password (min 6 characters)" autocomplete="current-password">
         <button id="signupBtn">Create Account</button>
         <button id="loginBtn">Sign In</button>
         <button id="googleBtn">🚀 Sign in with Google</button>
@@ -720,11 +726,34 @@
 
         function showMessage(element, text, type) {
             if (!element) return;
-            element.innerHTML = `<div class="message ${type}" style="background: rgba(0,0,0,0.7); backdrop-filter:blur(8px); border-radius:60px; padding:12px; margin-top:16px;">${text}</div>`;
-            setTimeout(() => { if (element.innerHTML.includes(text)) element.innerHTML = ''; }, 2800);
+            element.innerHTML = `<div class="message ${type}">${text}</div>`;
+            setTimeout(() => { 
+                if (element.innerHTML === `<div class="message ${type}">${text}</div>`) {
+                    element.innerHTML = ''; 
+                }
+            }, 4000);
         }
 
-        function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, function(m) { if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
+        function escapeHtml(str) { 
+            if(!str) return ''; 
+            return str.replace(/[&<>]/g, function(m) { 
+                if(m==='&') return '&amp;'; 
+                if(m==='<') return '&lt;'; 
+                if(m==='>') return '&gt;'; 
+                return m;
+            }); 
+        }
+
+        // Validate email format
+        function isValidEmail(email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(email);
+        }
+
+        // Validate password strength
+        function isValidPassword(password) {
+            return password && password.length >= 6;
+        }
 
         // ---------- PROFILE ----------
         async function loadProfile() {
@@ -767,12 +796,13 @@
         document.getElementById('cancelEditBtn')?.addEventListener('click', () => { document.getElementById('profileDisplay').style.display='block'; document.getElementById('profileEdit').style.display='none'; });
         document.getElementById('saveProfileBtn')?.addEventListener('click', async () => {
             await supabase.from('user_profiles').update({ display_name: document.getElementById('editDisplayName').value, bio: document.getElementById('editBio').value, location: document.getElementById('editLocation').value, website: document.getElementById('editWebsite').value, updated_at: new Date() }).eq('id', currentUser.id);
-            alert('Profile updated!');
-            document.getElementById('profileDisplay').style.display='block'; document.getElementById('profileEdit').style.display='none';
+            showMessage(loginMessage, '✅ Profile updated successfully!', 'success');
+            document.getElementById('profileDisplay').style.display='block'; 
+            document.getElementById('profileEdit').style.display='none';
             await loadProfile();
         });
 
-        // friends logic (identical to original but polished)
+        // friends logic
         async function loadFriends() { if (!currentUser) return;
             const { data: friendships } = await supabase.from('friends').select('*').or(`user_id.eq.${currentUser.id},friend_id.eq.${currentUser.id}`).eq('status', 'accepted');
             const friendIds = friendships?.map(f => f.user_id === currentUser.id ? f.friend_id : f.user_id) || [];
@@ -787,9 +817,9 @@
                 document.getElementById('friendRequests').innerHTML = requesters?.map(r => `<div class="friend-card">👤 ${escapeHtml(r.email.split('@')[0])}<div class="friend-actions"><button class="accept-btn" onclick="acceptFriend('${r.id}')">Accept</button><button class="reject-btn" onclick="rejectFriend('${r.id}')">Reject</button></div></div>`).join('');
             } else document.getElementById('friendRequests').innerHTML = '<div class="loading">No pending requests</div>';
         }
-        window.acceptFriend = async (requesterId) => { await supabase.from('friends').update({ status: 'accepted' }).eq('user_id', requesterId).eq('friend_id', currentUser.id); alert('Friend accepted!'); loadFriends(); loadChatFriends(); loadProfile(); };
-        window.rejectFriend = async (requesterId) => { await supabase.from('friends').delete().eq('user_id', requesterId).eq('friend_id', currentUser.id); alert('Rejected'); loadFriends(); };
-        window.sendFriendRequest = async (friendId) => { await supabase.from('friends').insert({ user_id: currentUser.id, friend_id: friendId, status: 'pending' }); alert('Request sent!'); document.getElementById('searchUsers').value=''; document.getElementById('searchResults').innerHTML=''; };
+        window.acceptFriend = async (requesterId) => { await supabase.from('friends').update({ status: 'accepted' }).eq('user_id', requesterId).eq('friend_id', currentUser.id); showMessage(loginMessage, '✅ Friend accepted!', 'success'); loadFriends(); loadChatFriends(); loadProfile(); };
+        window.rejectFriend = async (requesterId) => { await supabase.from('friends').delete().eq('user_id', requesterId).eq('friend_id', currentUser.id); showMessage(loginMessage, '❌ Friend request rejected', 'error'); loadFriends(); };
+        window.sendFriendRequest = async (friendId) => { await supabase.from('friends').insert({ user_id: currentUser.id, friend_id: friendId, status: 'pending' }); showMessage(loginMessage, '✅ Friend request sent!', 'success'); document.getElementById('searchUsers').value=''; document.getElementById('searchResults').innerHTML=''; };
         
         document.getElementById('searchUsers')?.addEventListener('input', async (e) => {
             const term = e.target.value.toLowerCase();
@@ -835,14 +865,13 @@
         document.getElementById('sendChatBtn')?.addEventListener('click', sendPrivateMessage);
         document.getElementById('chatInput')?.addEventListener('keypress', (e) => { if(e.key === 'Enter') sendPrivateMessage(); });
 
-        // ============ REELS FUNCTION - FIXED! ============
+        // REELS FUNCTION
         async function loadReels() {
             const reelsDiv = document.getElementById('videoList');
             if (!reelsDiv) return;
             
             reelsDiv.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-pulse"></i> Loading reels...</div>';
             
-            // Fetch all posts that have videos
             const { data: videoPosts, error } = await supabase
                 .from('posts')
                 .select('*')
@@ -864,7 +893,6 @@
                 return;
             }
             
-            // Get user's likes for reels
             const { data: userLikes } = currentUser ? await supabase
                 .from('post_likes')
                 .select('post_id')
@@ -872,7 +900,6 @@
             
             const likedPostIds = new Set(userLikes?.map(l => l.post_id) || []);
             
-            // Build reels HTML
             let reelsHtml = '';
             for (const post of videoPosts) {
                 const isLiked = likedPostIds.has(post.id);
@@ -883,8 +910,7 @@
                             src="${post.video_url}" 
                             controls 
                             preload="metadata"
-                            playsinline
-                            poster="${post.image_url || ''}">
+                            playsinline>
                         </video>
                         <div class="reel-info">
                             <div class="reel-user">
@@ -909,7 +935,6 @@
             reelsDiv.innerHTML = reelsHtml;
         }
         
-        // Toggle like for reels
         window.toggleReelLike = async (postId, isLiked) => {
             if (!currentUser) {
                 alert('Please log in to like reels');
@@ -925,20 +950,17 @@
                 const { data: p } = await supabase.from('posts').select('likes').eq('id', postId).single();
                 await supabase.from('posts').update({ likes: (p?.likes || 0) + 1 }).eq('id', postId);
             }
-            loadReels(); // Refresh reels view
-            loadFeed();  // Also refresh feed to keep consistent
+            loadReels();
+            loadFeed();
         };
         
-        // Helper to switch to feed and scroll to post comments
         window.openCommentsOnFeed = (postId) => {
-            // Switch to feed panel
             document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
             document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
             const feedBtn = document.querySelector('[data-panel="feed"]');
             if (feedBtn) feedBtn.classList.add('active');
             document.getElementById('feedPanel').classList.add('active');
             
-            // Scroll to the post and focus comment input
             setTimeout(() => {
                 const commentInput = document.getElementById(`comment-${postId}`);
                 if (commentInput) {
@@ -948,7 +970,7 @@
             }, 300);
         };
 
-        // feed + likes/comments identical but improved UI
+        // feed + likes/comments
         async function loadFeed() {
             const feedDiv = document.getElementById('feedList'); feedDiv.innerHTML = '<div class="loading">Loading posts...</div>';
             const { data: posts } = await supabase.from('posts').select('*').order('created_at', { ascending: false });
@@ -981,8 +1003,10 @@
             if(videoFile) { const fn = `${Date.now()}_${videoFile.name}`; await supabase.storage.from('posts').upload(fn, videoFile); const {data:{publicUrl}} = supabase.storage.from('posts').getPublicUrl(fn); videoUrl=publicUrl; }
             await supabase.from('posts').insert({ user_id: currentUser.id, user_name: currentUser.email.split('@')[0], text, image_url: imageUrl, video_url: videoUrl, likes:0 });
             document.getElementById('postText').value = ''; document.getElementById('postImage').value=''; document.getElementById('postVideo').value='';
+            showMessage(loginMessage, '✅ Post created successfully!', 'success');
             loadFeed(); loadReels();
         });
+        
         // navigation
         document.querySelectorAll('.nav-item').forEach(btn => btn.addEventListener('click', () => {
             document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active')); btn.classList.add('active');
@@ -994,11 +1018,163 @@
             if(panelId==='profile') loadProfile(); 
             if(panelId==='chat') loadChatFriends();
         }));
+        
         document.getElementById('logoutBtn')?.addEventListener('click', async () => { await supabase.auth.signOut(); currentUser=null; loginScreen.style.display='flex'; mainApp.style.display='none'; });
-        // auth
-        document.getElementById('loginBtn')?.addEventListener('click', async () => { const email=document.getElementById('email').value, pwd=document.getElementById('password').value; if(!email||!pwd){ showMessage(loginMessage,'⚠️ Enter email & password','error'); return; } const {data,error}=await supabase.auth.signInWithPassword({email,password}); if(error) showMessage(loginMessage,`❌ ${error.message}`,'error'); else { currentUser=data.user; loginScreen.style.display='none'; mainApp.style.display='flex'; loadProfile(); loadFeed(); loadReels(); } });
-        document.getElementById('signupBtn')?.addEventListener('click', async () => { const email=document.getElementById('email').value, pwd=document.getElementById('password').value; if(!email||!pwd){ showMessage(loginMessage,'⚠️ Enter email & password','error'); return; } const {error}=await supabase.auth.signUp({email,password}); if(error) showMessage(loginMessage,`❌ ${error.message}`,'error'); else showMessage(loginMessage,'✅ Account created! Please log in.','success'); document.getElementById('email').value=''; document.getElementById('password').value=''; });
-        supabase.auth.onAuthStateChange((_, session) => { if(session){ currentUser=session.user; loginScreen.style.display='none'; mainApp.style.display='flex'; loadProfile(); loadFeed(); loadReels(); } else { currentUser=null; loginScreen.style.display='flex'; mainApp.style.display='none'; } });
+        
+        // ============ FIXED AUTHENTICATION ============
+        // Sign Up
+        document.getElementById('signupBtn')?.addEventListener('click', async () => {
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            
+            // Clear previous message
+            loginMessage.innerHTML = '';
+            
+            // Validation
+            if (!email || !password) {
+                showMessage(loginMessage, '⚠️ Please enter both email and password', 'error');
+                return;
+            }
+            
+            if (!isValidEmail(email)) {
+                showMessage(loginMessage, '⚠️ Please enter a valid email address (e.g., name@example.com)', 'error');
+                return;
+            }
+            
+            if (!isValidPassword(password)) {
+                showMessage(loginMessage, '⚠️ Password must be at least 6 characters long', 'error');
+                return;
+            }
+            
+            try {
+                const { data, error } = await supabase.auth.signUp({ 
+                    email: email, 
+                    password: password,
+                    options: {
+                        emailRedirectTo: window.location.origin
+                    }
+                });
+                
+                if (error) {
+                    console.error('Signup error:', error);
+                    if (error.message.includes('password')) {
+                        showMessage(loginMessage, '❌ Password must be at least 6 characters', 'error');
+                    } else if (error.message.includes('already registered')) {
+                        showMessage(loginMessage, '❌ This email is already registered. Please sign in instead.', 'error');
+                    } else {
+                        showMessage(loginMessage, `❌ ${error.message}`, 'error');
+                    }
+                } else if (data.user) {
+                    showMessage(loginMessage, '✅ Account created successfully! You can now sign in.', 'success');
+                    // Clear password field for security
+                    document.getElementById('password').value = '';
+                } else {
+                    showMessage(loginMessage, '✅ Please check your email to confirm your account!', 'success');
+                }
+            } catch (err) {
+                console.error('Unexpected error:', err);
+                showMessage(loginMessage, '❌ An unexpected error occurred. Please try again.', 'error');
+            }
+        });
+        
+        // Sign In
+        document.getElementById('loginBtn')?.addEventListener('click', async () => {
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            
+            loginMessage.innerHTML = '';
+            
+            if (!email || !password) {
+                showMessage(loginMessage, '⚠️ Please enter both email and password', 'error');
+                return;
+            }
+            
+            if (!isValidEmail(email)) {
+                showMessage(loginMessage, '⚠️ Please enter a valid email address', 'error');
+                return;
+            }
+            
+            if (!isValidPassword(password)) {
+                showMessage(loginMessage, '⚠️ Password must be at least 6 characters', 'error');
+                return;
+            }
+            
+            try {
+                const { data, error } = await supabase.auth.signInWithPassword({ 
+                    email: email, 
+                    password: password 
+                });
+                
+                if (error) {
+                    console.error('Login error:', error);
+                    if (error.message.includes('Invalid login credentials')) {
+                        showMessage(loginMessage, '❌ Invalid email or password. Please try again.', 'error');
+                    } else {
+                        showMessage(loginMessage, `❌ ${error.message}`, 'error');
+                    }
+                } else if (data.user) {
+                    currentUser = data.user;
+                    loginScreen.style.display = 'none';
+                    mainApp.style.display = 'flex';
+                    await loadProfile();
+                    await loadFeed();
+                    await loadReels();
+                }
+            } catch (err) {
+                console.error('Unexpected error:', err);
+                showMessage(loginMessage, '❌ An unexpected error occurred. Please try again.', 'error');
+            }
+        });
+        
+        // Google Sign In
+        document.getElementById('googleBtn')?.addEventListener('click', async () => {
+            try {
+                const { data, error } = await supabase.auth.signInWithOAuth({
+                    provider: 'google',
+                    options: {
+                        redirectTo: window.location.origin
+                    }
+                });
+                
+                if (error) {
+                    console.error('Google login error:', error);
+                    showMessage(loginMessage, `❌ ${error.message}`, 'error');
+                }
+            } catch (err) {
+                console.error('Unexpected error:', err);
+                showMessage(loginMessage, '❌ An unexpected error occurred. Please try again.', 'error');
+            }
+        });
+        
+        // Check auth state on page load
+        supabase.auth.getSession().then(({ data: { session } }) => {
+            if (session) {
+                currentUser = session.user;
+                loginScreen.style.display = 'none';
+                mainApp.style.display = 'flex';
+                loadProfile();
+                loadFeed();
+                loadReels();
+            } else {
+                loginScreen.style.display = 'flex';
+                mainApp.style.display = 'none';
+            }
+        });
+        
+        supabase.auth.onAuthStateChange((event, session) => {
+            if (session) {
+                currentUser = session.user;
+                loginScreen.style.display = 'none';
+                mainApp.style.display = 'flex';
+                loadProfile();
+                loadFeed();
+                loadReels();
+            } else if (event === 'SIGNED_OUT') {
+                currentUser = null;
+                loginScreen.style.display = 'flex';
+                mainApp.style.display = 'none';
+            }
+        });
     })();
 </script>
 </body>
